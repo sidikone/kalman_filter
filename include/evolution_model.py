@@ -2,8 +2,9 @@ from copy import deepcopy
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-
+import time
 from utils import cv2DataFrame, ctrv2DataFrame
+from progress.bar import IncrementalBar
 
 
 def unit_cv_polar(x_in, y_in, theta_in, speed_in, dt=1):
@@ -87,7 +88,7 @@ def ctrv_imu_command_step(state_v_in, a_imu, w_imu, dt_imu):
     :param state_v_in:
     :param a_imu:
     :param w_imu:
-    :param dt:
+    :param dt_imu:
     :return:
     """
     x_t, y_t, theta_t, v_t = state_v_in[0], state_v_in[1], state_v_in[2], state_v_in[3]
@@ -100,6 +101,8 @@ def ctrv_imu_command_step(state_v_in, a_imu, w_imu, dt_imu):
 
 
 def batch_cv_integration(state_init, imu_accel, imu_gyro):
+
+    my_bar = IncrementalBar('CV_model', max=len(imu_accel))
     save_state = []
     state_v_out = []
     dt = 1. / 100
@@ -122,10 +125,14 @@ def batch_cv_integration(state_init, imu_accel, imu_gyro):
 
         save_state.append(state_v_out)
 
+        my_bar.next()
+    my_bar.finish()
     return cv2DataFrame(state=save_state, ref_data=imu_accel)
 
 
 def batch_ctrv_integration(state_init, imu_accel, imu_gyro):
+
+    my_bar = IncrementalBar('CTRV_model', max=len(imu_accel))
     save_state = []
     state_v_out = []
     dt = 1. / 100
@@ -148,7 +155,8 @@ def batch_ctrv_integration(state_init, imu_accel, imu_gyro):
         )
 
         save_state.append(state_v_out)
-
+        my_bar.next()
+    my_bar.finish()
     return ctrv2DataFrame(state=save_state, ref_data=imu_accel)
 
 
