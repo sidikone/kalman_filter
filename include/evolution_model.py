@@ -161,11 +161,14 @@ def batch_ctrv_integration(state_init, imu_accel, imu_gyro):
 
 
 def plot_ref_gps(ax):
-    gps = pd.read_csv('ref_pos.csv')
+    gps = pd.read_csv('include/gps-0.csv')
     gps -= gps.iloc[0]
 
     ax.set_title('Plot trace')
-    ax.plot(gps['ref_pos_x (m)'], gps['ref_pos_y (m)'], label='true position')
+    # ax.plot(gps['gps_x (m)'], gps['gps_y (m)'], label='true position')
+    ax.plot(gps['gps_vx (m/s)'], label='true position')
+    ax.plot(gps['gps_vy (m/s)'], label='true position')
+
     ax.set_ylabel('Y (m)')
     ax.set_xlabel('X (m)')
     return None
@@ -173,8 +176,8 @@ def plot_ref_gps(ax):
 
 def run_batch_cv_kalman(ax):
     init = np.array([0, 0, np.deg2rad(183), .0])
-    accel = pd.read_csv('ref_accel.csv')
-    gyro = pd.read_csv('ref_gyro.csv')
+    accel = pd.read_csv('include/ref_accel.csv')
+    gyro = pd.read_csv('include/ref_gyro.csv')
     em_cv = batch_cv_integration(state_init=init,
                                  imu_accel=accel['ref_accel_x (m/s^2)'],
                                  imu_gyro=np.deg2rad(gyro['ref_gyro_z (deg/s)']))
