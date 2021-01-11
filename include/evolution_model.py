@@ -187,8 +187,8 @@ def run_batch_cv_kalman(ax):
 
 def run_batch_ctrv_kalman(ax):
     init = np.array([0, 0, np.deg2rad(183), .0])
-    accel = pd.read_csv('ref_accel.csv')
-    gyro = pd.read_csv('ref_gyro.csv')
+    accel = pd.read_csv('../data/simu_dataset_1/ref_accel.csv')
+    gyro = pd.read_csv('../data/simu_dataset_1/ref_gyro.csv')
     em_cv = batch_ctrv_integration(state_init=init,
                                    imu_accel=accel['ref_accel_x (m/s^2)'],
                                    imu_gyro=np.deg2rad(gyro['ref_gyro_z (deg/s)']))
