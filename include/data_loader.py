@@ -14,6 +14,7 @@ class SimuData:
         self.__timestamp = None
 
         self.__sampling_dt = None
+        self.__sampling_fs = None
         self.__imu_dt = None
         self.__gps_dt = None
         self.__data_max_len = None
@@ -29,6 +30,8 @@ class SimuData:
     def __initialize(self, path, sampling_fs) -> None:
         local_path = path + "/ref_accel.csv"
         self.__sampling_dt = 1. / sampling_fs
+        self.__sampling_fs = sampling_fs
+
         self.__data_max_len = len(pd.read_csv(local_path))
         self.__timestamp = self.__timestamp_data()
 
@@ -47,18 +50,32 @@ class SimuData:
         return time_index
 
     @staticmethod
+    def __resampling_data(data, fs_in, fs_out):
+        return data.iloc[range(0, len(data), int(fs_in / fs_out))]
+
+    @staticmethod
     def __add_timestamp_to_data(data, timestamp) -> None:
         data['Timestamp'] = timestamp.values
         data.set_index('Timestamp', inplace=True)
 
     def get_imu_data(self, fs=None):
+        data = ()
         if fs is None:
-            self.__imu_dt = self.__sampling_dt
+            data = (self.__accel_data, self.__gyro_data)
 
-        return self.__accel_data, self.__gyro_data
+        else:
+            accel_resampling = self.__resampling_data(data=self.__accel_data, fs_in=self.__sampling_fs, fs_out=fs)
+            gyro_resampling = self.__resampling_data(data=self.__gyro_data, fs_in=self.__sampling_fs, fs_out=fs)
+            data = (accel_resampling, gyro_resampling)
+        return data
 
     def get_gps_data(self, fs=None):
+        data = ()
         if fs is None:
-            self.__gps_dt = self.__sampling_dt
+            data = (self.__accel_data, self.__gyro_data)
 
-        return self.__gps_pos_data, self.__gps_spd_data
+        else:
+            gps_pos_resampling = self.__resampling_data(data=self.__gps_pos_data, fs_in=self.__sampling_fs, fs_out=fs)
+            gps_spd_resampling = self.__resampling_data(data=self.__gps_spd_data, fs_in=self.__sampling_fs, fs_out=fs)
+            data = (gps_pos_resampling, gps_spd_resampling)
+        return data
