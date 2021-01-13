@@ -5,6 +5,7 @@ import datetime
 
 
 class SimuData:
+
     def __init__(self, path, sampling_fs):
         self.__path = None
         self.__accel_data = None
