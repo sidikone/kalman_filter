@@ -12,7 +12,7 @@ def compute_command_vector_linear_kalman(spd, theta):
     return vstack([0, 0, vx, vy])
 
 
-def compute_prediction_linear_kalman(state_vector, P_mat, spd, theta, dt, Q_mat):
+def compute_prediction_linear_kalman(state_vector, P_mat, Q_mat, spd, theta, dt):
     state_in = vstack(state_vector)
     F_mat = compute_F_matrix_linear_kalman(dt=dt)
     U_vect = compute_command_vector_linear_kalman(spd=spd, theta=theta)
