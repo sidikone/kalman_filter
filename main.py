@@ -3,6 +3,8 @@ import pandas as pd
 from matplotlib import pyplot as plt
 from include.evolution_model import batch_cv_integration, plot_ref_gps
 from include.data_loader import SimuData
+from include.linear_kalman_filter import LinearKalman
+import datetime
 
 
 def run_batch_cv_kalman(ax) -> None:
@@ -23,74 +25,100 @@ def run_batch_cv_kalman(ax) -> None:
 
     ax.plot(spd_from_accel)
 
-    # em_cv = batch_cv_integration(state_init=init,
-    #                              imu_accel=accel['ref_accel_x (m/s^2)'],
-    #                              imu_gyro=np.deg2rad(gyro['ref_gyro_z (deg/s)']))
-    #
-    # ax.plot(em_cv['x'], em_cv['y'], '--', label='CV model')
+    em_cv = batch_cv_integration(state_init=init,
+                                 imu_accel=accel['ref_accel_x (m/s^2)'],
+                                 imu_gyro=np.deg2rad(gyro['ref_gyro_z (deg/s)']))
+
+    ax.plot(em_cv['x'], em_cv['y'], '--', label='CV model')
+
+
+def main_data_loader() -> None:
+    data_sim = SimuData(path="data/simu_dataset_1")
+
+    data_sim.set_imu_frequency(fs=50)
+    data_sim.set_gps_frequency(fs=10)
+
+    data_sim.set_accel_data_noise(std=0.25)
+    data_sim.set_gyro_data_noise(std=0.15)
+    data_sim.set_gps_pos_data_noise(std=3.)
+    data_sim.set_gps_spd_data_noise(std=0.50)
+
+    accel, gyro = data_sim.get_imu_data()
+    accel_name = list(accel)
+    gyro_name = list(gyro)
+    pos, spd = data_sim.get_gps_data()
+    spd_name = list(spd)
+
+    fig, ax = plt.subplots()
+    ax.plot(pos["ref_pos_x (m)_noise"], pos["ref_pos_y (m)_noise"])
+    ax.plot(pos["ref_pos_x (m)"], pos["ref_pos_y (m)"])
+    plt.show()
+
+    y_labels = ['ax (m/s²)', 'ay (m/s²)', 'az (m/s²)']
+    fig, ax = plt.subplots(3, 1, sharex=True)
+    for ind, name in enumerate(accel_name[3:]):
+        ax[ind].plot(accel[name])
+
+    for ind, name in enumerate(accel_name[:3]):
+        ax[ind].plot(accel[name])
+        ax[ind].set_ylabel(y_labels[ind])
+
+    y_labels = ['gx (rad/s²)', 'gy (rad/s²)', 'gz (rad/s²)']
+    fig, ax = plt.subplots(3, 1, sharex=True)
+    for ind, name in enumerate(gyro_name[3:]):
+        ax[ind].plot(gyro[name])
+
+    for ind, name in enumerate(gyro_name[:3]):
+        ax[ind].plot(gyro[name])
+        ax[ind].set_ylabel(y_labels[ind])
+
+    plt.show()
+
+    y_labels = ['vx (m/s)', 'vy (m/s)', 'vz (m/s)', 'v_norm (m/s)']
+    fig, ax = plt.subplots(4, 1, sharex=True)
+    for ind, name in enumerate(spd_name[4:]):
+        ax[ind].plot(spd[name])
+
+    for ind, name in enumerate(spd_name[:4]):
+        ax[ind].plot(spd[name])
+        ax[ind].set_ylabel(y_labels[ind])
+
+    plt.show()
 
 
 def main() -> None:
-    data_sim = SimuData(path="data/simu_dataset_1", sampling_fs=100)
-    accel, gyro = data_sim.get_imu_data(fs=5)
-    kaw = data_sim.set_accel_data_noise(std=2)
-    print(kaw.head(5))
+    data_sim = SimuData(path="data/simu_dataset_1")
+    data_sim.set_gps_frequency(fs=10)
+    data_sim.set_gps_pos_data_noise(std=3.)
+    data_sim.set_gps_spd_data_noise(std=0.50)
+    pos, spd = data_sim.get_gps_data()
 
-    kaw = data_sim.set_gyro_data_noise(std=2)
-    print(kaw.head(5))
+    pos_name = list(pos)
+    c_time = (datetime.datetime.now()).strftime('%H:%M:%S')
+    print(c_time)
+    current_time = (datetime.datetime.now() + datetime.timedelta(minutes=5, seconds=30)).strftime('%H:%M:%S')
+    next_time = (datetime.datetime.now() + datetime.timedelta(minutes=6)).strftime('%H:%M:%S')
+    pos = pos.between_time(current_time, next_time)
 
-    kaw = data_sim.set_gps_pos_data_noise(std=2)
-    print(kaw.head(5))
+    kal_m = LinearKalman(state_init=1, P_init=1, R_init=1, Q_init=2)
+    kal_m.compute_kalman_gps_pos(gps_data=pos[["ref_pos_x (m)", "ref_pos_y (m)"]])
 
-    kaw = data_sim.set_gps_spd_data_noise(std=2)
-    print(kaw.head(5))
-
-
-    # fig, ax = plt.subplots()
-    # plot_ref_gps(ax=ax)
-    # fig2, ax2 = plt.subplots()
-    # run_batch_cv_kalman(ax=ax2)
-    # ax.legend()
-    # plt.show()
+    print(pos.head(5))
 
 
-# def main() -> None:
-#     my_data = pd.DataFrame({"accel" : [1, 1, 1, 1, 0, 0, 1, 1, 0, 0, -3, -3, 0, 0]})
-#     my_data["speed"] = my_data.values*0.1
-#     my_data["pos"] = my_data["speed"].cumsum()
-#     print(my_data)
-#     fig, ax = plt.subplots()
-#     ax.plot(my_data["pos"] + 3, '.-')
-#     ax.legend()
-#     plt.show()
+def main_2() -> None:
+    vect_in = [3, 5, 0.5, 0.75]
+    Q_m = np.eye(4)
+    P_m = 5 * np.eye(4)
+    # F_mat = pdc.compute_F_matrix_linear_kalman(dt=0.25)
+    # u_com = pdc.compute_command_vector_linear_kalman(spd=2, theta= np.deg2rad(15))
+    # state_out, p_out = pdc.compute_prediction_linear_kalman(state_vector=vect_in, P_mat=P_m, spd=1,
+    #                                                         theta=np.deg2rad(15), dt=.20, Q_mat=Q_m)
+    #
+    # R_m = 2 * np.eye(4)
+    # meas = [1.5, 2.5, 0.1, 0.5]
+    # pdc.compute_update_linear_kalman_gps(state_vector=state_out, meas_vector=meas, R_mat=R_m, P_mat=p_out)
 
-
-#
-#
-#     def add_noise(self, std):
-#
-#         self._noise_trig = True
-#         self.noise = std
-# #        self.noise_signal = self._signal + std * np.random.randn(len(self._time))
-#         self.noise_signal = self._signal + np.random.normal(scale=np.sqrt(std), size=len(self._time))
-#         return None
-#
-#     def _timestamp_data(self):
-#
-#         time_index = pd.date_range(
-#             datetime.datetime.now(), periods=len(self._signal), freq=str(self._sampling_period)+'S', name="timestamp"
-#         )
-#         return time_index
-#
-#     def get_data_into_pandas_format(self):
-#         time_index = self._timestamp_data()
-#         self.dataFrame = pd.DataFrame({'Timestamp': time_index.values, 'raw_data': self._signal})
-#         self.dataFrame = self.dataFrame.set_index('Timestamp')
-#
-#         if self._noise_trig:
-#             self.dataFrame['noise_data'] = self.noise_signal
-#
-#         return self.dataFrame
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':

@@ -36,9 +36,6 @@ class LinearKalman:
         dt_list = compute_timedelta(data=gps_data)
         gps_values = gps_data.values
 
-        spd_var = 0
-        theta_var = 0
-
         state_var = self.state_init
         P_var = self.P_init
         Q_var = self.Q_init
@@ -58,8 +55,6 @@ class LinearKalman:
                 state_pred, P_pred = compute_prediction_linear_kalman(state_vector=state_var,
                                                                       P_mat=P_var,
                                                                       Q_mat=Q_var,
-                                                                      spd=spd_var,
-                                                                      theta=theta_var,
                                                                       dt=dt)
                 state_pred_list.append(state_pred)
                 P_mat_pred_list.append(P_pred)
@@ -74,5 +69,3 @@ class LinearKalman:
                 # for the newt loop
                 state_var = state_upd
                 P_var = P_upd
-                spd_var = linalg.norm(state_var[2:])  # Convert data from cartesian to polar coordinate
-                theta_var = atan2(- state_var[3], state_var[2])  # Convert data from cartesian to polar coordinate
