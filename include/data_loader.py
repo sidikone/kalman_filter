@@ -62,13 +62,14 @@ class SimuData:
     def __add_noise(self, data, std):
 
         cols_name = data.columns
-        cols_noise_name = [elt + '_noise' for elt in cols_name]
+        cols_noise_name = [elt.replace("ref_", "") for elt in cols_name]
         data_noise = [self.__noise_definition(data=data[elt], std=std) for elt in cols_name]
         my_frame = pd.DataFrame.from_dict(dict(zip(cols_noise_name, data_noise)))
         return pd.concat([data, my_frame], axis=1)
 
     @staticmethod
     def __noise_definition(data, std):
+        # np.random.seed(2)
         return data + np.random.normal(scale=std, size=len(data))
         # return data + np.random.normal(scale=np.sqrt(std), size=len(data))
 
