@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from utils import cv2DataFrame, ctrv2DataFrame
+from utils import compute_timedelta
 from progress.bar import IncrementalBar
 
 
@@ -104,13 +105,13 @@ def batch_cv_integration(state_init, imu_accel, imu_gyro):
     my_bar = IncrementalBar('CV_model', max=len(imu_accel))
     save_state = []
     state_v_out = []
-    dt = 1. / 100
+    dt = compute_timedelta(imu_accel)[1:]
 
-    for count in range(len(imu_accel)):
+    for count in range(len(dt)):
 
         if count == 0:
             state_v = deepcopy(state_init)
-            # save_state.append(state_v)
+            save_state.append(state_v)
 
         else:
             state_v = deepcopy(state_v_out)
@@ -119,7 +120,7 @@ def batch_cv_integration(state_init, imu_accel, imu_gyro):
             state_v_in=state_v,
             a_imu=imu_accel[count],
             w_imu=imu_gyro[count],
-            dt_imu=dt,
+            dt_imu=dt[count],
         )
 
         save_state.append(state_v_out)
@@ -134,14 +135,14 @@ def batch_ctrv_integration(state_init, imu_accel, imu_gyro):
     my_bar = IncrementalBar('CTRV_model', max=len(imu_accel))
     save_state = []
     state_v_out = []
-    dt = 1. / 100
+    dt = compute_timedelta(imu_accel)[1:]
     # dt_list = compute_timedelta(imu_accel)
 
     # for count, dt in enumerate(dt_list):
-    for count in range(len(imu_accel)):
+    for count in range(len(dt)):
         if count == 0:
             state_v = deepcopy(state_init)
-            # save_state.append(state_v)
+            save_state.append(state_v)
 
         else:
             state_v = deepcopy(state_v_out)
@@ -150,7 +151,7 @@ def batch_ctrv_integration(state_init, imu_accel, imu_gyro):
             state_v_in=state_v,
             a_imu=imu_accel[count],
             w_imu=imu_gyro[count],
-            dt_imu=dt,
+            dt_imu=dt[count],
         )
 
         save_state.append(state_v_out)

@@ -6,19 +6,7 @@ from prediction import compute_prediction_linear_kalman
 from update import compute_update_linear_kalman_gps_pos, compute_update_linear_kalman_gps
 from utils import cartesian_state_cv2DataFrame, cartesian_P_cv2DataFrame
 from progress.bar import IncrementalBar
-
-
-def compute_timedelta(data):
-    """
-
-    :param data:
-    :return:
-    """
-
-    diff = data.index.to_series().diff()
-    time_delta = [time.total_seconds() for time in diff]
-
-    return time_delta
+from utils import compute_timedelta
 
 
 class LinearKalman:
