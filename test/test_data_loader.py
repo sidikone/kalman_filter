@@ -104,8 +104,8 @@ def test_simu_data() -> None:
     assert pos.shape == gps_pos_data_shape()
     assert spd.shape == gps_spd_data_shape()
 
-    plot_gps_pos(pos, disp=True)
-    plot_gps_spd(spd, disp=True)
+    plot_gps_pos(pos, disp=False)
+    plot_gps_spd(spd, disp=False)
     plot_imu_accel(accel, disp=False)
     plot_imu_gyro(gyro, disp=False)
 

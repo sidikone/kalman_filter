@@ -1,7 +1,5 @@
 from copy import deepcopy
-import matplotlib.pyplot as plt
 import numpy as np
-import pandas as pd
 from utils import cv2DataFrame, ctrv2DataFrame
 from utils import compute_timedelta
 from progress.bar import IncrementalBar
@@ -158,53 +156,3 @@ def batch_ctrv_integration(state_init, imu_accel, imu_gyro):
         my_bar.next()
     my_bar.finish()
     return ctrv2DataFrame(state=save_state, ref_data=imu_accel)
-#
-#
-# def plot_ref_gps(ax):
-#     gps = pd.read_csv('include/gps-0.csv')
-#     gps -= gps.iloc[0]
-#
-#     ax.set_title('Plot trace')
-#     # ax.plot(gps['gps_x (m)'], gps['gps_y (m)'], label='true position')
-#     ax.plot(gps['gps_vx (m/s)'], label='true position')
-#     ax.plot(gps['gps_vy (m/s)'], label='true position')
-#
-#     ax.set_ylabel('Y (m)')
-#     ax.set_xlabel('X (m)')
-#     return None
-#
-#
-# def run_batch_cv_kalman(ax):
-#     init = np.array([0, 0, np.deg2rad(183), .0])
-#     accel = pd.read_csv('include/ref_accel.csv')
-#     gyro = pd.read_csv('include/ref_gyro.csv')
-#     em_cv = batch_cv_integration(state_init=init,
-#                                  imu_accel=accel['ref_accel_x (m/s^2)'],
-#                                  imu_gyro=np.deg2rad(gyro['ref_gyro_z (deg/s)']))
-#     ax.plot(em_cv['x'], em_cv['y'], '--', label='CV model')
-#     return None
-#
-#
-# def run_batch_ctrv_kalman(ax):
-#     init = np.array([0, 0, np.deg2rad(183), .0])
-#     accel = pd.read_csv('../data/simu_dataset_1/ref_accel.csv')
-#     gyro = pd.read_csv('../data/simu_dataset_1/ref_gyro.csv')
-#     em_cv = batch_ctrv_integration(state_init=init,
-#                                    imu_accel=accel['ref_accel_x (m/s^2)'],
-#                                    imu_gyro=np.deg2rad(gyro['ref_gyro_z (deg/s)']))
-#     ax.plot(em_cv['x'], em_cv['y'], marker='o', linestyle='--', fillstyle='none', label='CTRV model')
-#     return None
-#
-#
-# def main():
-#     fig, ax = plt.subplots()
-#     plot_ref_gps(ax=ax)
-#     run_batch_cv_kalman(ax=ax)
-#     run_batch_ctrv_kalman(ax=ax)
-#     ax.legend()
-#     plt.show()
-#     return None
-#
-#
-# if __name__ == '__main__':
-#     main()

@@ -56,7 +56,7 @@ def comparison_of_evolution_model() -> None:
     vect_init_ctrv = set_init_ctrv()
     cv_model = run_batch_cv_kalman(init=vect_init_cv, accel=accel, gyro=gyro)
     ctrv_model = run_batch_ctrv_kalman(init=vect_init_ctrv, accel=accel, gyro=gyro)
-    plot_data(pos, cv_model, ctrv_model, disp=False)
+    plot_data(pos, cv_model, ctrv_model)
 
 
 def main() -> None:

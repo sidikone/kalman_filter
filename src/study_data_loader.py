@@ -87,10 +87,10 @@ def run_data_simulation() -> None:
     accel, gyro = data_sim.get_imu_data()
     pos, spd = data_sim.get_gps_data()
 
-    plot_gps_pos(pos, disp=False)
-    plot_gps_spd(spd, disp=False)
-    plot_imu_accel(accel, disp=True, multi_plot=True)
-    plot_imu_gyro(gyro, disp=True)
+    plot_gps_pos(pos, multi_plot=True)
+    plot_gps_spd(spd)
+    plot_imu_accel(accel)
+    plot_imu_gyro(gyro)
 
 
 def main():
