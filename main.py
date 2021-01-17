@@ -86,7 +86,50 @@ def main_data_loader() -> None:
     plt.show()
 
 
+def state_init_def(gps_data, vx=0.5, vy=0.75):
+    vect = list(gps_data.iloc[0].values)
+    vect.append(vx)
+    vect.append(vy)
+    return vect
+
+
+def state_init_def_2(gps_pos, gps_speed):
+    return list(gps_pos.iloc[0].values) + list(gps_speed.iloc[0].values)
+
+
 def main() -> None:
+    data_sim = SimuData(path="data/simu_dataset_1")
+    data_sim.set_gps_frequency(fs=10)
+    data_sim.set_gps_pos_data_noise(std=3.)
+    data_sim.set_gps_spd_data_noise(std=0.50)
+    pos, spd = data_sim.get_gps_data()
+
+    # pos_name = list(pos)
+    # c_time = (datetime.datetime.now()).strftime('%H:%M:%S')
+    # print(c_time)
+    # current_time = (datetime.datetime.now() + datetime.timedelta(minutes=5, seconds=30)).strftime('%H:%M:%S')
+    # next_time = (datetime.datetime.now() + datetime.timedelta(minutes=6)).strftime('%H:%M:%S')
+    # pos = pos.between_time(current_time, next_time)
+    # spd = spd.between_time(current_time, next_time)
+    #
+    # print(spd.head(3))
+
+    state_1 = state_init_def(gps_data=pos[["ref_pos_x (m)", "ref_pos_y (m)"]])
+    P_mat = 100*np.eye(4)
+    R_mat = 3*np.eye(2)
+    Q_mat = 5*np.eye(4)
+    print(R_mat)
+    kal_m = LinearKalman(state_init=state_1, P_init=P_mat, R_init=R_mat, Q_init=Q_mat)
+    state_frame, P_frame = kal_m.compute_kalman_gps_pos(gps_data=pos[["ref_pos_x (m)", "ref_pos_y (m)"]])
+
+    print(state_frame.head(5))
+    print(P_frame.head(5))
+    fig, ax = plt.subplots()
+    ax.plot(state_frame["x"], state_frame["y"])
+    plt.show()
+
+
+def main_2() -> None:
     data_sim = SimuData(path="data/simu_dataset_1")
     data_sim.set_gps_frequency(fs=10)
     data_sim.set_gps_pos_data_noise(std=3.)
@@ -97,19 +140,36 @@ def main() -> None:
     c_time = (datetime.datetime.now()).strftime('%H:%M:%S')
     print(c_time)
     current_time = (datetime.datetime.now() + datetime.timedelta(minutes=5, seconds=30)).strftime('%H:%M:%S')
-    next_time = (datetime.datetime.now() + datetime.timedelta(minutes=6)).strftime('%H:%M:%S')
+    next_time = (datetime.datetime.now() + datetime.timedelta(minutes=8)).strftime('%H:%M:%S')
     pos = pos.between_time(current_time, next_time)
+    spd = spd.between_time(current_time, next_time)
 
-    kal_m = LinearKalman(state_init=1, P_init=1, R_init=1, Q_init=2)
-    kal_m.compute_kalman_gps_pos(gps_data=pos[["ref_pos_x (m)", "ref_pos_y (m)"]])
+    print(spd.head(3))
 
-    print(pos.head(5))
+    state_1 = state_init_def(gps_data=pos[["ref_pos_x (m)", "ref_pos_y (m)"]])
+    state_2 = state_init_def_2(gps_pos=pos[["ref_pos_x (m)", "ref_pos_y (m)"]],
+                               gps_speed=spd[["ref_vel_x (m/s)", "ref_vel_y (m/s)"]])
+    print(state_2)
+    P_mat = 100*np.eye(4)
+    R_mat = 3*np.eye(4)
+    Q_mat = 5*np.eye(4)
+    print(R_mat)
+    kal_m = LinearKalman(state_init=state_1, P_init=P_mat, R_init=R_mat, Q_init=Q_mat)
+    state_frame, P_frame = kal_m.compute_kalman_gps(pos_data=pos[["ref_pos_x (m)", "ref_pos_y (m)"]],
+                                                    spd_data=spd[["ref_vel_x (m/s)", "ref_vel_y (m/s)"]])
+
+    print(state_frame.head(5))
+
+    fig, ax = plt.subplots()
+    ax.plot(state_frame["x"], state_frame["y"])
+    plt.show()
 
 
-def main_2() -> None:
-    vect_in = [3, 5, 0.5, 0.75]
-    Q_m = np.eye(4)
-    P_m = 5 * np.eye(4)
+
+# def main_2() -> None:
+#     vect_in = [3, 5, 0.5, 0.75]
+#     Q_m = np.eye(4)
+#     P_m = 5 * np.eye(4)
     # F_mat = pdc.compute_F_matrix_linear_kalman(dt=0.25)
     # u_com = pdc.compute_command_vector_linear_kalman(spd=2, theta= np.deg2rad(15))
     # state_out, p_out = pdc.compute_prediction_linear_kalman(state_vector=vect_in, P_mat=P_m, spd=1,

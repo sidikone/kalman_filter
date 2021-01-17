@@ -4,7 +4,7 @@ from include.data_loader import SimuData
 from include.linear_kalman_filter import LinearKalman
 
 
-def set_sensor_frequencies(fs_gps=25):
+def set_sensor_frequencies(fs_gps=10):
     return fs_gps
 
 
@@ -63,7 +63,23 @@ def plot_data(gps_data, kalman_pos, kalman_gps, disp=True) -> None:
         plt.show()
 
 
-def comparison_of_evolution_model() -> None:
+def gps_pos_data_shape(line=9656, col=6):
+    return line, col
+
+
+def gps_spd_data_shape(line=9656, col=8):
+    return line, col
+
+
+def ekf_pos_data_shape(line=9656, col=4):
+    return line, col
+
+
+def ekf_gps_data_shape(line=9656, col=5):
+    return line, col
+
+
+def comparison_of_linear_kalman_gps() -> None:
     gps_fs = set_sensor_frequencies()
 
     data_sim = SimuData(path="../data/simu_dataset_1")
@@ -87,18 +103,25 @@ def comparison_of_evolution_model() -> None:
 
     ekf_pos, P_pos = kalman.compute_kalman_gps_pos(gps_data=pos[["ref_pos_x (m)", "ref_pos_y (m)"]],
                                                    R_init=R_pos_init)
-
     ekf_gps, P_gps = kalman.compute_kalman_gps(pos_data=pos[["ref_pos_x (m)", "ref_pos_y (m)"]],
                                                spd_data=spd[["ref_vel_x (m/s)", "ref_vel_y (m/s)"]],
                                                R_init=R_gps_init)
 
+    assert pos.shape == gps_pos_data_shape()
+    assert spd.shape == gps_spd_data_shape()
+    assert ekf_pos.shape == ekf_pos_data_shape()
+    assert P_pos.shape == ekf_pos_data_shape()
+    assert ekf_gps.shape == ekf_pos_data_shape()
+    assert P_gps.shape == ekf_pos_data_shape()
+
     plot_data(gps_data=pos,
               kalman_pos=ekf_pos,
-              kalman_gps=ekf_gps)
+              kalman_gps=ekf_gps,
+              disp=False)
 
 
 def main() -> None:
-    comparison_of_evolution_model()
+    comparison_of_linear_kalman_gps()
 
 
 if __name__ == "__main__":
