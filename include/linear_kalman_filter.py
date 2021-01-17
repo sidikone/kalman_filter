@@ -1,7 +1,4 @@
 import pandas as pd
-from matplotlib import pyplot as plt
-from numpy import hstack, vstack, linalg
-from math import atan2
 from prediction import compute_prediction_linear_kalman
 from update import compute_update_linear_kalman_gps_pos, compute_update_linear_kalman_gps
 from utils import cartesian_state_cv2DataFrame, cartesian_P_cv2DataFrame
@@ -11,15 +8,14 @@ from utils import compute_timedelta
 
 class LinearKalman:
 
-    def __init__(self, state_init, P_init, Q_init, R_init):
+    def __init__(self, state_init, P_init, Q_init):
         self.state_init = state_init
         self.P_init = P_init
         self.Q_init = Q_init
-        self.R_init = R_init
 
         self.P_mat_final = None
 
-    def compute_kalman_gps_pos(self, gps_data):
+    def compute_kalman_gps_pos(self, gps_data, R_init):
 
         my_bar = IncrementalBar('linear kalman gps-pos', max=len(gps_data))
         state_pred_list, state_upd_list = [], []
@@ -31,7 +27,7 @@ class LinearKalman:
         state_var = self.state_init
         P_var = self.P_init
         Q_var = self.Q_init
-        R_var = self.R_init
+        R_var = R_init
 
         for ind, dt in enumerate(dt_list):
 
@@ -68,7 +64,7 @@ class LinearKalman:
         P_frame = cartesian_P_cv2DataFrame(P_upd_list, gps_data)
         return state_frame, P_frame
 
-    def compute_kalman_gps(self, pos_data, spd_data):
+    def compute_kalman_gps(self, pos_data, spd_data, R_init):
 
         data = pd.concat([pos_data, spd_data], axis=1)
         my_bar = IncrementalBar('linear kalman gps', max=len(data))
@@ -82,7 +78,7 @@ class LinearKalman:
         state_var = self.state_init
         P_var = self.P_init
         Q_var = self.Q_init
-        R_var = self.R_init
+        R_var = R_init
 
         for ind, dt in enumerate(dt_list):
 
